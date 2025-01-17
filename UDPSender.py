@@ -100,7 +100,7 @@ class UdpMessageApp:
 
     def schedule_timer(self):
         if self.is_sending:
-            self.timer = Timer(1.0, self.timer_callback)
+            self.timer = Timer(0.05, self.timer_callback)
             self.timer.start()
 
     def timer_callback(self):
