@@ -1,9 +1,11 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const dgram = require('dgram')
 const path = require('node:path')
 
 const BRAIN_PORT = 8150
 const GOV_PORT = 8153
+
+let mainWindow
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -11,15 +13,25 @@ const createWindow = () => {
     height: 300,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      contextIsolation: false,
+      nodeIntegration: true,
     },
   })
 
   win.loadFile('index.html')
+  mainWindow = win
 }
 
 app.whenReady().then(() => {
   const server = dgram.createSocket('udp4', { port: GOV_PORT })
+  server.bind(GOV_PORT)
+
+  createWindow()
+
+  server.on('listening', () => {
+    const address = server.address()
+    console.log(`UDP server listening on ${address.address}:${address.port}`)
+  })
 
   server.on('message', (msg, info) => {
     // Parse serialized JSON message
@@ -27,18 +39,13 @@ app.whenReady().then(() => {
 
     // Handle received message
     console.log('Received serialized JSON message:', jsonList)
-    const response = JSON.stringify([{ Key: "Throttle", Value: 100 }])
-    server.send(response, BRAIN_PORT)
+    mainWindow.webContents.send('update-text', jsonList)
+    mainWindow.webContents.send('inc-throttle', jsonList)
   })
 
-  server.on('listening', () => {
-    const address = server.address()
-    console.log(`UDP server listening on ${address.address}:${address.port}`)
+  ipcMain.on('send-throttle', (_event, throttle) => {
+    server.send(JSON.stringify({ "throttle": throttle }), BRAIN_PORT)
   })
-
-  server.bind(GOV_PORT)
-
-  createWindow()
 
   // show window when activating on macOS
   app.on('activate', () => {
