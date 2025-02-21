@@ -8,6 +8,13 @@ ipcRenderer.on('update-text', (_event, jsonList) => {
     const element = document.getElementById(id)
     if (element) element.innerText = Math.round(jsonList[ key ])
   }
+
+  const ptoIndicator = document.getElementById("pto")
+  if (jsonList.pto >= 0.5) {
+    ptoIndicator.innerText = "On"
+  } else {
+    ptoIndicator.innerText = "Off"
+  }
 })
 
 ipcRenderer.on('inc-throttle', (_event, msg) => {

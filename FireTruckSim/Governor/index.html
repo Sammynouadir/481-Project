@@ -37,11 +37,6 @@
         flex: 0 0 33.33%; /* Each section takes 1/3 of column height */
       }
 
-      /* Second column */
-      .column:nth-child(2) {
-        justify-content: center;
-      }
-
       .column:nth-child(2) .element {
         flex: 0 0 33.33%;
       }
@@ -114,6 +109,11 @@
         </div>
       </div>
       <div class="column">
+        <div class="element"><div class="lcd">
+            <p class="label">PTO</p>
+            <p class="info" id="pto">Off</p>
+          </div>
+        </div>
         <div class="element"><div class="lcd">
             <p class="label">Target</p>
             <p class="info" id="target-pressure">0</p>
