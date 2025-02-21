@@ -1,12 +1,14 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const dgram = require('dgram')
-const path = require('node:path')
 
+// receive over GOV_PORT, send over BRAIN_PORT
 const BRAIN_PORT = 8150
 const GOV_PORT = 8153
 
+// there is only 1 main window
 let mainWindow
 
+// create main window
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 400,
@@ -23,28 +25,27 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-  const server = dgram.createSocket('udp4', { port: GOV_PORT })
-  server.bind(GOV_PORT)
+  // socket over which to communicate with pump brain
+  const socket = dgram.createSocket('udp4', { port: GOV_PORT })
+  socket.bind(GOV_PORT)
 
+  // show main window
   createWindow()
 
-  server.on('listening', () => {
-    const address = server.address()
-    console.log(`UDP server listening on ${address.address}:${address.port}`)
-  })
-
-  server.on('message', (msg, info) => {
+  // UDP message received
+  socket.on('message', (msg, info) => {
     // Parse serialized JSON message
-    const jsonList = JSON.parse(msg.toString())
+    const json = JSON.parse(msg.toString())
 
     // Handle received message
-    console.log('Received serialized JSON message:', jsonList)
-    mainWindow.webContents.send('update-text', jsonList)
-    mainWindow.webContents.send('inc-throttle', jsonList)
+    console.log('Received serialized JSON message:', json)
+    mainWindow.webContents.send('update-text', json)
+    mainWindow.webContents.send('inc-throttle', json)
   })
 
+  // only thing needed to send back is throttle
   ipcMain.on('send-throttle', (_event, throttle) => {
-    server.send(JSON.stringify({ "throttle": throttle }), BRAIN_PORT)
+    socket.send(JSON.stringify({ "throttle": throttle }), BRAIN_PORT)
   })
 
   // show window when activating on macOS
