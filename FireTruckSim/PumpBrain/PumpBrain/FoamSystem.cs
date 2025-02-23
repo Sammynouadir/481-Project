@@ -49,7 +49,7 @@ namespace PumpBrain
             _totalFoamFlowed += changeInFoamLevel;
 
             // Adjust tank level while keeping it between full size and 0
-            FoamTankLevel = Math.Max(Math.Min(FoamTankLevel + changeInFoamLevel, _foamTankSize), 0.0);
+            FoamTankLevel = Math.Max(Math.Min(FoamTankLevel - changeInFoamLevel, _foamTankSize), 0.0);
 
             // Calculate normalized foam tank level which is sent out to the gauges
             _normalizedFoamLevel = FoamTankLevel / _foamTankSize;

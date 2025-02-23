@@ -88,10 +88,14 @@ namespace PumpBrain
                 data[kvp.Key] = kvp.Value;
             }
 
-            // TODO: get data from _foamSystem
+            // get data from _foamSystem
+            foreach (var kvp in _foamSystem.GetData())
+            {
+                data[kvp.Key] = kvp.Value;
+            }
 
             // get data from _tankFillLine
-            foreach(var kvp in _tankFillLine.GetData())
+            foreach (var kvp in _tankFillLine.GetData())
             {
                 data[kvp.Key] = kvp.Value;
             }
@@ -113,11 +117,11 @@ namespace PumpBrain
             data[Consts.intakePressure] = _intakePressure;
 
             // Add these just for being able to see in the test tool
-            data["hydrant connected"] = Convert.ToDouble(_hydrant.Connected);
-            data["hydrant flow rate"] = _hydrant.FlowRate;
-            data["hydrant pressure"] = _hydrant.Pressure;
-            data["water tank level"] = _waterTankLevel;
-            data["tank fill flow rate"] = _tankFillLine.FlowRate;
+            //data["hydrant connected"] = Convert.ToDouble(_hydrant.Connected);
+            //data["hydrant flow rate"] = _hydrant.FlowRate;
+            //data["hydrant pressure"] = _hydrant.Pressure;
+            //data["water tank level"] = _waterTankLevel;
+            //data["tank fill flow rate"] = _tankFillLine.FlowRate;
             //for (int i = 0; i < _discharges.Count; i++)
             //{
             //    data["nozzle " + i + " pressure"] = _discharges[i].GetNozzlePressureForTesting();
@@ -149,11 +153,11 @@ namespace PumpBrain
             _engine.SetData(receivedData);
             _pump.SetData(receivedData);
             _tankFillLine.SetData(receivedData);
+            _foamSystem.SetData(receivedData);
             foreach (var discharge in _discharges)
             {
                 discharge.SetData(receivedData);
             }
-            // TODO: set data for foam system
 
         }
 
@@ -197,8 +201,6 @@ namespace PumpBrain
                     _pumpHasWater = false;
                     _usingTankWater = false;
                 }
-
-
                 
                 // Calculate the pump pressure
                 _pump.CalculatePressure(_totalFlowRate, _engine.Rpm, _intakePressure, _pumpHasWater);
@@ -212,6 +214,9 @@ namespace PumpBrain
                     _hydrant.FlowRate = _totalFlowRate;
                     _hydrant.CalculatePressure();
                 }
+
+                // Update foam system
+                _foamSystem.FlowFoam(_totalFlowRate);
 
                 AdjustWaterTankLevel();
             }
