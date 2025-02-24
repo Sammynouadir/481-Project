@@ -26,8 +26,8 @@ ipcRenderer.on('update-text', (_event, msg) => {
 
 // increment (or decrement) throttle by small amount based on difference between target and discharge pressures
 ipcRenderer.on('inc-throttle', (_event, msg) => {
-  // throttle must be 0 if PTO is not enabled
-  if (msg.pto < 0.5) {
+  // throttle must be 0 if PTO is not enabled or there is no water in tank
+  if (msg.pto < 0.5 || msg[ "master discharge pressure" ] == 0) {
     throttle = 0
   } else {
     const target = document.getElementById("target-pressure").innerText
