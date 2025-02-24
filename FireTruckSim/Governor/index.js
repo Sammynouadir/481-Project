@@ -3,6 +3,9 @@ const { ipcRenderer } = require('electron')
 // keys of interest in the JSON object received over socket
 const keys = ["master discharge pressure", "intake pressure", "engine rpm"]
 
+// engine throttle (sent but not received over socket)
+let throttle
+
 // update display text
 ipcRenderer.on('update-text', (_event, msg) => {
   // these values should be displayed as integers based on value received over socket
@@ -24,15 +27,15 @@ ipcRenderer.on('update-text', (_event, msg) => {
 // increment (or decrement) throttle by small amount based on difference between target and discharge pressures
 ipcRenderer.on('inc-throttle', (_event, msg) => {
   // throttle must be 0 if PTO is not enabled
-  if (msg.throttle == null || msg.pto < 0.5) {
-    msg.throttle = 0
+  if (msg.pto < 0.5) {
+    throttle = 0
   } else {
     const target = document.getElementById("target-pressure").innerText
-    msg.throttle += 0.001 * (target - msg[ "master discharge pressure" ])
+    throttle += 0.001 * (target - msg[ "master discharge pressure" ])
   }
 
   // send throttle over socket
-  ipcRenderer.send('send-throttle', msg.throttle)
+  ipcRenderer.send('send-throttle', throttle)
 })
 
 // increment (or decrement if negative) target pressure by n
