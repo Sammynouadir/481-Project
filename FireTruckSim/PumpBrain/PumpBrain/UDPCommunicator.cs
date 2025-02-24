@@ -15,7 +15,7 @@ namespace PumpBrain
         private readonly UdpClient _udpSender;
         private readonly Timer _udpSendingTimer;
         private readonly UdpClient _udpListener;
-        private readonly List<int> _ports;
+        private readonly List<int> ports;
         private readonly ConcurrentQueue<ConcurrentDictionary<string, double>> _messageQueue = new ConcurrentQueue<ConcurrentDictionary<string, double>>();
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -29,9 +29,9 @@ namespace PumpBrain
             StartListening();
 
             // List of ports
-            _ports = new List<int>
+            ports = new List<int>
             {
-                //Consts.listenPort, // TODO: THIS IS SENDING TO ITSELF, REMOVE THIS AT SOME POINT
+                Consts.listenPort, // THIS IS SENDING TO ITSELF, REMOVE THIS AT SOME POINT
                 Consts.sendPortPTO,
                 Consts.sendPortFoamController,
                 Consts.sendPortGovernor,
@@ -74,8 +74,6 @@ namespace PumpBrain
             // Serialize to JSON
             string jsonData = JsonSerializer.Serialize(data);
 
-            //Console.WriteLine(jsonData);
-
             // Send JSON over UDP
             byte[] bytes = Encoding.UTF8.GetBytes(jsonData);
             foreach (var port in ports)
@@ -94,9 +92,6 @@ namespace PumpBrain
 
                 // Deserialize JSON
                 string message = Encoding.UTF8.GetString(data);
-
-                Console.WriteLine(message);
-
                 var receivedData = JsonSerializer.Deserialize<ConcurrentDictionary<string, double>>(message);
 
                 // Pass the received data to the PumpBrain for processing
@@ -125,7 +120,6 @@ namespace PumpBrain
                 }
             }
 
-            // Don't hog resources
             await Task.Delay(1);
         }
 
@@ -134,7 +128,7 @@ namespace PumpBrain
         {
             if (!_brain.Paused)
             {
-                SendUDP(_brain.GetData(), _ports);
+                SendUDP(_brain.GetData(), ports);
             }
         }
     }

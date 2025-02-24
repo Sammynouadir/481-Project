@@ -5,12 +5,8 @@
     },
     "Python Test Tool": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\jason\\source\\gitHub\\PumpPanel\\481-Project\\FireTruckSim\\PumpBrain\\PumpBrain\\bin\\Debug\\net7.0\\TestToolLauncher.bat",
+      "executablePath": "C:\\Users\\jason\\source\\repos\\PumpBrain\\PumpBrain\\bin\\Debug\\net7.0\\TestToolLauncher.bat",
       "nativeDebugging": true
-    },
-    "Py Test": {
-      "commandName": "Executable",
-      "executablePath": "C:\\Users\\jason\\source\\gitHub\\PumpPanel\\481-Project\\FireTruckSim\\PumpBrain\\PumpBrain\\bin\\Debug\\net7.0\\TestToolLauncher.bat"
     }
   }
 }
