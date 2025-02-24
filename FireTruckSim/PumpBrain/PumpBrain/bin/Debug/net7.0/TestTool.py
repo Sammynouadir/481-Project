@@ -39,30 +39,34 @@ class UdpMessageApp:
         Label(sending_frame, text="Key 1:").grid(row=1, column=0, padx=10, pady=5, sticky=E)
         self.key1_field = Entry(sending_frame)
         self.key1_field.grid(row=1, column=1, padx=10, pady=5, sticky=E+W)
-        self.key1_field.insert(0, "throttle")
+        self.key1_field.insert(0, "tank to pump position")
 
         Label(sending_frame, text="Value 1:").grid(row=2, column=0, padx=10, pady=5, sticky=E)
         self.value1_field = Entry(sending_frame)
         self.value1_field.grid(row=2, column=1, padx=10, pady=5, sticky=E+W)
-        self.value1_field.insert(0, ".5")
+        self.value1_field.insert(0, "1.0")
 
         # Key-Value Pairs 2
         Label(sending_frame, text="Key 2:").grid(row=3, column=0, padx=10, pady=5, sticky=E)
         self.key2_field = Entry(sending_frame)
         self.key2_field.grid(row=3, column=1, padx=10, pady=5, sticky=E+W)
+        self.key2_field.insert(0, "pto")
 
         Label(sending_frame, text="Value 2:").grid(row=4, column=0, padx=10, pady=5, sticky=E)
         self.value2_field = Entry(sending_frame)
         self.value2_field.grid(row=4, column=1, padx=10, pady=5, sticky=E+W)
+        self.value2_field.insert(0, "1.0")
 
         # Key-Value Pairs 3
         Label(sending_frame, text="Key 3:").grid(row=5, column=0, padx=10, pady=5, sticky=E)
         self.key3_field = Entry(sending_frame)
         self.key3_field.grid(row=5, column=1, padx=10, pady=5, sticky=E+W)
+        self.key3_field.insert(0, "tank fill position")
 
         Label(sending_frame, text="Value 3:").grid(row=6, column=0, padx=10, pady=5, sticky=E)
         self.value3_field = Entry(sending_frame)
         self.value3_field.grid(row=6, column=1, padx=10, pady=5, sticky=E+W)
+        self.value3_field.insert(0, "0.0")
 
         # Send Port Field
         Label(sending_frame, text="Send Port:").grid(row=7, column=0, padx=10, pady=5, sticky=E)
@@ -93,7 +97,7 @@ class UdpMessageApp:
         Label(incoming_frame, text="Latest Message Received:", font=("Arial", 12, "bold")).grid(row=1, column=0, columnspan=2, pady=5)
 
         # Expandable Text Box for Latest Message
-        self.latest_message_text = Text(incoming_frame, wrap="word", height=10, width=40)
+        self.latest_message_text = Text(incoming_frame, wrap="word", height=35, width=60)
         self.latest_message_text.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky=N+S+E+W)
 
         # Messages Received Counter

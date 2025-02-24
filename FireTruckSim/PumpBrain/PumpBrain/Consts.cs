@@ -11,7 +11,10 @@ namespace PumpBrain
     static internal class Consts
     {
         public static readonly double dt = .05;
+        public static readonly double waterFlowRateCoefficient = 29.7;
         public static readonly string ip = "127.0.0.1";
+        public static readonly string tankFilleFlowRate = "tank fill flow rate";
+        public static readonly string tankFillPressure = "tank fill pressure";
 
         // Ports
         public static readonly int listenPort = 8150;
@@ -54,6 +57,7 @@ namespace PumpBrain
         public static readonly string discharge1FlowRate = "discharge 1 flow rate";
         public static readonly string discharge2FlowRate = "discharge 2 flow rate";
         public static readonly string discharge3FlowRate = "discharge 3 flow rate";
+        public static readonly string totalFlowRate = "total flow rate";
         public static readonly string normalizedWaterTankLevel = "normalized water tank level";
         public static readonly string normalizedFoamTankLevel = "normalized foam tank level";
 

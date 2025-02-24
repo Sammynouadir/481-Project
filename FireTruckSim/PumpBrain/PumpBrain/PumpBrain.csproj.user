@@ -4,6 +4,6 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>Python Test Tool</ActiveDebugProfile>
+    <ActiveDebugProfile>Py Test</ActiveDebugProfile>
   </PropertyGroup>
 </Project>

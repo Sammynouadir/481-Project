@@ -8,7 +8,7 @@ namespace PumpBrain
 {
     public class Hydrant
     {
-        internal bool Connected = true;
+        internal bool Connected = false;
         internal double FlowRate { get; set; }
         internal double Pressure { get; private set; }
         private double _noFlowPressure;
