@@ -36,7 +36,6 @@ app.whenReady().then(() => {
   socket.on('message', (msg, info) => {
     // Parse serialized JSON message
     const json = JSON.parse(msg.toString())
-    json.pto = 1
 
     // Handle received message
     console.log('Received serialized JSON message:', json)

@@ -31,7 +31,7 @@ ipcRenderer.on('inc-throttle', (_event, msg) => {
     throttle = 0
   } else {
     const target = document.getElementById("target-pressure").innerText
-    throttle += 0.001 * (target - msg[ "master discharge pressure" ])
+    throttle += 0.0001 * (target - msg[ "master discharge pressure" ])
     // throttle must be between 0 and 1
     if (throttle < 0) throttle = 0
     else if (throttle > 1) throttle = 1
