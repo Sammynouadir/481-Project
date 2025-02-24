@@ -4,7 +4,7 @@ const { ipcRenderer } = require('electron')
 const keys = ["master discharge pressure", "intake pressure", "engine rpm"]
 
 // engine throttle (sent but not received over socket)
-let throttle
+let throttle = 0
 
 // update display text
 ipcRenderer.on('update-text', (_event, msg) => {
@@ -32,6 +32,9 @@ ipcRenderer.on('inc-throttle', (_event, msg) => {
   } else {
     const target = document.getElementById("target-pressure").innerText
     throttle += 0.001 * (target - msg[ "master discharge pressure" ])
+    // throttle must be between 0 and 1
+    if (throttle < 0) throttle = 0
+    else if (throttle > 1) throttle = 1
   }
 
   // send throttle over socket
