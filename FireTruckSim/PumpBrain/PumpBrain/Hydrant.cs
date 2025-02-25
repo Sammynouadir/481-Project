@@ -27,6 +27,7 @@ namespace PumpBrain
             // Pressure starts out at the no flow pressure
             Pressure = _noFlowPressure;
 
+            // Equation borrowed from FAAC.inc with permission
             // Calculate the pressure drop coefficiant used later to calculate pressure at a given flow rate
             _pressureDropCoefficiant = (_noFlowPressure - _residualPressure) / (_flowRateAtResidualPressure / 100.0) / (_flowRateAtResidualPressure / 100.0);
         }

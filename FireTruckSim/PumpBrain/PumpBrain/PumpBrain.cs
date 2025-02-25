@@ -10,6 +10,12 @@ using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
+/// CREDITS ///
+/// FAAC.inc has given me permission to make this project at.
+/// 6 of the 7 constants used to model the pump are borrowed from FAAC.inc
+/// The equation to calculate the pressure drop coefficient on hydrants is also borrowed
+/// While nothing else has been taken from the code at FAAC, much of this project
+/// is based on what I learned from working there.
 
 namespace PumpBrain
 {
@@ -47,7 +53,7 @@ namespace PumpBrain
             
             // Set up components
             _hydrant = new Hydrant(40.0, 20.0, 1500.0, new Hose(50.0, .08)); // .08 common for 5 inch supply hose
-            _pump = new Pump(2.27, -0.004, -0.000032, 2250.0, 3375.0, 80.0, 170.0); // Modeled after common 1500gpm pump
+            _pump = new Pump(2.27, -0.004, -0.000032, 2250.0, 3375.0, 80.0, 170.0); // Modeled after common 1500gpm pump, values borrowed from FAAC.inc with permission
             _engine = new Engine(800.0, 2500.0, 20.0);
             _foamSystem= new FoamSystem(30.0);
             _waterTankSize = 500.0;
