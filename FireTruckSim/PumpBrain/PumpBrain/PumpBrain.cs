@@ -11,7 +11,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 /// CREDITS ///
-/// FAAC.inc has given me permission to make this project at.
+/// FAAC.inc has given me permission to make this project.
 /// 6 of the 7 constants used to model the pump are borrowed from FAAC.inc
 /// The equation to calculate the pressure drop coefficient on hydrants is also borrowed
 /// While nothing else has been taken from the code at FAAC, much of this project
