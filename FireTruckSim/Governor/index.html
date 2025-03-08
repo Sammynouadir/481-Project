@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Governor</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Doto:wght@700&display=swap');
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .container {
+        background-image: linear-gradient(lightgrey, grey);
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      .column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .spacer {
+        visibility: hidden; /* Makes space invisible but maintains layout */
+      }
+
+      /* First column with spacer */
+      .column:nth-child(1) .element,
+      .column:nth-child(1) .spacer {
+        flex: 0 0 33.33%; /* Each section takes 1/3 of column height */
+      }
+
+      .column:nth-child(2) .element {
+        flex: 0 0 33.33%;
+      }
+
+      /* Third column */
+      .column:nth-child(3) .element {
+        flex: 1;
+      }
+
+      /* Visual styling */
+      .element {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Box which emulates an LCD display panel */
+      .lcd {
+        position: relative;
+        border: 2px solid #aaa;
+        width: 80%;
+        height: 80%;
+        border-radius: 4px;
+        font-family: 'Doto', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: lightsalmon;
+        background: darkred;
+      }
+
+      /* Title of LCD panel */
+      .label {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 3.5vw;
+      }
+
+      /* data within LCD panel */
+      .info {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 5.5vw;
+      }
+
+      button {
+        background-color: yellow;
+        border-radius: 4px;
+        width: 80%;
+        height: 80%;
+        font-family: sans-serif;
+        font-size: 3.5vw;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="column">
+        <div class="element"><div class="lcd">
+            <p class="label">Discharge</p>
+            <p class="info" id="master-discharge-pressure">8888</p>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <div class="element"><div class="lcd">
+            <p class="label">Intake</p>
+            <p class="info" id="intake-pressure">8888</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="element"><div class="lcd">
+            <p class="label">PTO</p>
+            <p class="info" id="pto">Off</p>
+          </div>
+        </div>
+        <div class="element"><div class="lcd">
+            <p class="label">Target</p>
+            <p class="info" id="target-pressure">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="element"><div class="lcd">
+            <p class="label">RPM</p>
+            <p class="info" id="engine-rpm">8888</p>
+          </div>
+        </div>
+        <div class="element"><button onclick="incTarget(10)">Up</button></div>
+        <div class="element"><button onclick="incTarget(-10)">Down</button></div>
+      </div>
+    </div>
+
+    <script src="index.js"></script>
+  </body>
+</html>

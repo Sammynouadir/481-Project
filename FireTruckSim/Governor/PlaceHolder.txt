@@ -1,1 +1,0 @@
-Folders are not allowed to be empty on github
