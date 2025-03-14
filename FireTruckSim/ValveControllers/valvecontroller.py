@@ -17,11 +17,11 @@ def listen():
             data = json.loads(message.decode())
 
             if "Reset" in data and data["Reset"] == 1:
-                print(data)
+#                print(data)
                 reset_valve_control()  
             elif listeningFor.lower() in data:
-                print(f"Received update: {data[listeningFor.lower()]}")
-                app.update_lights(data[listeningFor.lower()])  #
+#                print(f"Received update: {data[listeningFor.lower()]}")
+                app.update_lights(int(data[listeningFor.lower()] * 5))  #
                 
         except Exception as e:            
             print("Error: ", e)
