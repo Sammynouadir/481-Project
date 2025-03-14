@@ -1,0 +1,21 @@
+listen from json from pumpbrain
+send to every port that app is expected to be on\
+
+
+when green arrow is clicked change value to 0.4
+
+make it resizeable
+
+lights dont change unless there are port changes
+
+discharge 1 valve position
+
+
+public static readonly string discharge1Position = "discharge 1 position";
+        public static readonly string discharge2Position = "discharge 2 position";
+        public static readonly string discharge3Position = "discharge 3 position";
+        public static readonly string intakePosition = "intake position";
+        public static readonly string tankToPumpPosition = "tank to pump position";
+        public static readonly string tankFillPosition = "tank fill position";
+
+change port number to string the key is recieving up here c 

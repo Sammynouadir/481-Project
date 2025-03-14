@@ -4,28 +4,24 @@ import json
 import threading
 
 def sendUDP(data):
-    #encode data
     json_message = json.dumps(data)
-    #send data
     server_socket.sendto(json_message.encode(), (SERVER_IP, int(SERVER_PORT)))
 
 def listen():
-    # Create a UDP socket to listen on
     listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     listen_socket.bind((SERVER_IP, int(CURRENT_PORT)))  
-    
+
     while True:
-        # recieve meesage and adress from server with a file size of 1024 bytes
         message, address = listen_socket.recvfrom(1024)
-        
         try:
-            # decode json
             data = json.loads(message.decode())
-            
-            # check for reset
+
             if "Reset" in data and data["Reset"] == 1:
-#                print("Reseting...")
-                reset_valve_control()  # Call function to reset the valve control
+                print(data)
+                reset_valve_control()  
+            elif listeningFor.lower() in data:
+                print(f"Received update: {data[listeningFor.lower()]}")
+                app.update_lights(data[listeningFor.lower()])  #
                 
         except Exception as e:            
             print("Error: ", e)
@@ -36,86 +32,86 @@ def reset_valve_control():
 class LightControlApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Valve Control " + str(CURRENT_PORT))
-        self.canvas = tk.Canvas(root, width=400, height=200, bg="light grey")
-        self.canvas.pack()
-        
+        self.root.title("Valve Control " + listeningFor)
+        self.root.minsize(400, 200)
+
+        self.canvas = tk.Canvas(root, bg="light grey")
+        self.canvas.pack(fill="both", expand=True)
+
         self.lights = []
         self.light_status = [False] * 5  # Track on/off state of lights
+        
         self.create_lights()
         self.create_triangles()
 
     def create_lights(self):
+        self.lights = []
         start_x = 100
         for i in range(5):
             x = start_x + i * 40
             light = self.canvas.create_oval(x, 50, x + 30, 80, fill="gray", outline="black")
             self.lights.append(light)
-    
+
     def create_triangles(self):
-        # Left triangle
+        # Left Triangle (Decrease)
         self.left_triangle = self.canvas.create_polygon(50, 100, 30, 120, 50, 140, fill="red")
-        self.canvas.tag_bind(self.left_triangle, "<Button-1>", self.turn_off_lights)
-        
-        # Right triangle
+        self.canvas.tag_bind(self.left_triangle, "<Button-1>", self.send_decrease)
+
+        # Right triangle (Increase)
         self.right_triangle = self.canvas.create_polygon(350, 100, 370, 120, 350, 140, fill="green")
-        self.canvas.tag_bind(self.right_triangle, "<Button-1>", self.turn_on_lights)
-    
-    def turn_on_lights(self, event):
-        #create and send udp update to brain
-        data = {
-            "valve controller increment" : 1
-        }
+        self.canvas.tag_bind(self.right_triangle, "<Button-1>", self.send_increase)
+
+    def send_increase(self, event=None):
+        data = {"valve controller increment": 1}
         sendUDP(data)
-        colors = ["red","red","yellow","green","green"]
-        #loop until unlight light is found
+
+    def send_decrease(self, event=None):
+        data = {"valve controller decrement": 1}
+        sendUDP(data)
+
+    def update_lights(self, value):
+        colors = ["red", "red", "yellow", "green", "green"]
+
+        #reset all lights
+        self.light_status = [False] * 5
         for i in range(5):
-            if not self.light_status[i]:
-                #turn on
-                self.canvas.itemconfig(self.lights[i], fill=colors[i])
-                self.light_status[i] = True
-                break
-    
-    def turn_off_lights(self, event):
-            #create and send udp update to brain
-        data = {
-            "valve controller decrement" : 1
-        }
-        sendUDP(data)
-        #loop from back until lit light is found
-        for i in range(4, -1, -1):
-            if self.light_status[i]:
-                #turn off
-                self.canvas.itemconfig(self.lights[i], fill="gray")
-                self.light_status[i] = False
-                break
+            self.canvas.itemconfig(self.lights[i], fill="gray")
+
+        # turn on lights based on received value from pump brain
+        for i in range(min(value, 5)):  # out of bounds handling
+            self.canvas.itemconfig(self.lights[i], fill=colors[i])
+            self.light_status[i] = True
 
     def reset_lights(self):
-        # Reset the light status
+        """Resets all lights to off."""
         self.light_status = [False] * 5
         for light in self.lights:
             self.canvas.itemconfig(light, fill="gray")
 
-#select which port to listen on through valvesettings file
-f = open("ValveSettings.txt", "r")
-CURRENT_PORT = f.read()
-CURRENT_IP = "127.0.0.1"
-SERVER_PORT = 8150
-SERVER_IP = "127.0.0.1"  # Change if running on a different machine
+#read port and listening key from ValveSettings.txt
+with open("ValveSettings.txt", "r") as f:
+    valveInfo = f.read().split(",")
 
-#initialize sending socket    
+CURRENT_PORT = valveInfo[0]
+listeningFor = valveInfo[1]
+print(CURRENT_PORT, " ", listeningFor)
+
+SERVER_PORT = 8150
+SERVER_IP = "127.0.0.1"
+
+#initialize UDP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+# start Tkinter GUI
 root = tk.Tk()
 app = LightControlApp(root)
 
-listener_thread = threading.Thread(target=listen)
-listener_thread.daemon = True  #thread can exit when the program exits
+#start listening thread
+listener_thread = threading.Thread(target=listen, daemon=True)
 listener_thread.start()
 
-#run tkinter GUI
+#Start GUI
 root.mainloop()
 
-#end connections
+# Close socket when program ends
 server_socket.close()
-
