@@ -11,11 +11,6 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(current_dir)
 sys.path.append(parent_dir)
 
-try:
-    clr.AddReference("PumpBrain")
-    from PumpBrain import PumpBrain
-except Exception as e:
-    print(f"Error loading PumpBrain.dll: {e}")
 
 class FoamController:
     def __init__(self):
