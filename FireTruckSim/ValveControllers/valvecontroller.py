@@ -3,6 +3,16 @@ import socket
 import json
 import threading
 
+#assign variables in command prompt
+import sys
+
+if len(sys.argv) != 3:
+    print("Syntax: python script.py <PORT> <LISTENING_KEY>")
+    sys.exit(1)
+
+CURRENT_PORT = sys.argv[1]
+listeningFor = sys.argv[2]
+
 def sendUDP(data):
     json_message = json.dumps(data)
     server_socket.sendto(json_message.encode(), (SERVER_IP, int(SERVER_PORT)))
@@ -19,9 +29,9 @@ def listen():
             if "Reset" in data and data["Reset"] == 1:
 #                print(data)
                 reset_valve_control()  
-            elif listeningFor.lower() in data:
-#                print(f"Received update: {data[listeningFor.lower()]}")
-                app.update_lights(int(data[listeningFor.lower()] * 5))  #
+            elif listeningFor in data:
+#                print(f"Received update: {data[listeningFor]}")
+                app.update_lights(int(data[listeningFor] * 5))  #
                 
         except Exception as e:            
             print("Error: ", e)
@@ -88,12 +98,7 @@ class LightControlApp:
         for light in self.lights:
             self.canvas.itemconfig(light, fill="gray")
 
-#read port and listening key from ValveSettings.txt
-with open("ValveSettings.txt", "r") as f:
-    valveInfo = f.read().split(",")
 
-CURRENT_PORT = valveInfo[0]
-listeningFor = valveInfo[1]
 print(CURRENT_PORT, " ", listeningFor)
 
 SERVER_PORT = 8150
