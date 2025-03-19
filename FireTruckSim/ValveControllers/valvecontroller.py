@@ -11,13 +11,7 @@ if len(sys.argv) < 3:
     sys.exit(1)
 
 CURRENT_PORT = sys.argv[1]
-listeningFor = " ".join(sys.argv[2:])  # Handles spaces in keys
-
-#CURRENT_PORT = 8161
-#listeningFor = "Discharge 1 Position"
-
-#global strength
-#strength = 0.0
+listeningFor = " ".join(sys.argv[2:])  #handling for spaces in keys
 
 def sendUDP(data):
     json_message = json.dumps(data)
@@ -56,7 +50,7 @@ class LightControlApp:
         self.canvas.pack(fill="both", expand=True)
 
         self.lights = []
-        self.light_status = [False] * 5  # Track on/off state of lights
+        self.light_status = [False] * 5  # tracks on/off state of lights
         
         self.create_lights()
         self.create_triangles()
@@ -70,19 +64,21 @@ class LightControlApp:
             self.lights.append(light)
 
     def create_triangles(self):
-        # Left Triangle (Decrease)
+        # decrease
         self.left_triangle = self.canvas.create_polygon(50, 100, 30, 120, 50, 140, fill="red")
         self.canvas.tag_bind(self.left_triangle, "<Button-1>", self.send_decrease)
 
-        # Right triangle (Increase)
+        # increase
         self.right_triangle = self.canvas.create_polygon(350, 100, 370, 120, 350, 140, fill="green")
         self.canvas.tag_bind(self.right_triangle, "<Button-1>", self.send_increase)
 
     def send_increase(self, event=None):
         self.strength = 0.0
         for i in self.light_status:
+            #if light_status is True"
             if i:
                 self.strength += 0.2
+        #dont increase past 0
         if self.strength < 1:
             self.strength += 0.2
         self.strength = round(self.strength, 10)
@@ -92,8 +88,10 @@ class LightControlApp:
     def send_decrease(self, event=None):
         self.strength = 0.0
         for i in self.light_status:
+            #if light_status is True"
             if i:
                 self.strength += 0.2
+        #dont decrease past 0
         if self.strength > 0:
             self.strength -= 0.2
         self.strength = round(self.strength, 10)
@@ -114,13 +112,10 @@ class LightControlApp:
             self.light_status[i] = True
 
     def reset_lights(self):
-        """Resets all lights to off."""
         self.light_status = [False] * 5
         for light in self.lights:
             self.canvas.itemconfig(light, fill="gray")
 
-
-print(CURRENT_PORT, " ", listeningFor)
 
 SERVER_PORT = 8150
 SERVER_IP = "127.0.0.1"
