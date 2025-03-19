@@ -6,12 +6,18 @@ import threading
 #assign variables in command prompt
 import sys
 
-if len(sys.argv) != 3:
-    print("Syntax: python script.py <PORT> <LISTENING_KEY>")
+if len(sys.argv) < 3:
+    print("Usage: python script.py <PORT> \"<LISTENING_KEY>\"")
     sys.exit(1)
 
 CURRENT_PORT = sys.argv[1]
-listeningFor = sys.argv[2]
+listeningFor = " ".join(sys.argv[2:])  # Handles spaces in keys
+
+#CURRENT_PORT = 8161
+#listeningFor = "Discharge 1 Position"
+
+#global strength
+#strength = 0.0
 
 def sendUDP(data):
     json_message = json.dumps(data)
@@ -40,7 +46,8 @@ def reset_valve_control():
     app.reset_lights()
 
 class LightControlApp:
-    def __init__(self, root):
+    def __init__(self, root, strength):
+        self.strength = 0.0
         self.root = root
         self.root.title("Valve Control " + listeningFor)
         self.root.minsize(400, 200)
@@ -72,11 +79,25 @@ class LightControlApp:
         self.canvas.tag_bind(self.right_triangle, "<Button-1>", self.send_increase)
 
     def send_increase(self, event=None):
-        data = {"valve controller increment": 1}
+        self.strength = 0.0
+        for i in self.light_status:
+            if i:
+                self.strength += 0.2
+        if self.strength < 1:
+            self.strength += 0.2
+        self.strength = round(self.strength, 10)
+        data = {listeningFor : self.strength}
         sendUDP(data)
 
     def send_decrease(self, event=None):
-        data = {"valve controller decrement": 1}
+        self.strength = 0.0
+        for i in self.light_status:
+            if i:
+                self.strength += 0.2
+        if self.strength > 0:
+            self.strength -= 0.2
+        self.strength = round(self.strength, 10)
+        data = {listeningFor : self.strength}
         sendUDP(data)
 
     def update_lights(self, value):
@@ -103,13 +124,13 @@ print(CURRENT_PORT, " ", listeningFor)
 
 SERVER_PORT = 8150
 SERVER_IP = "127.0.0.1"
-
+strength = 0.0
 #initialize UDP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # start Tkinter GUI
 root = tk.Tk()
-app = LightControlApp(root)
+app = LightControlApp(root,strength)
 
 #start listening thread
 listener_thread = threading.Thread(target=listen, daemon=True)
