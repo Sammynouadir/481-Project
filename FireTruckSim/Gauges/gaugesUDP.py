@@ -6,6 +6,7 @@ import threading
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+import select
 
 # UDP Configuration
 UDP_PORTS = list(range(8160, 8167))  # Ports 8160-8166
@@ -41,32 +42,27 @@ prev_values = {
 
 prev_level_values = {key: 50 for key in LEVEL_KEYS.keys()}  # Still valid
 
-# UDP Listener (Runs in Separate Thread)
+
 def udp_listener():
-    """Listens for UDP messages and safely updates the UI with received values."""
+    """Listens for UDP messages using select() to reduce CPU usage."""
     udp_sockets = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM) for _ in UDP_PORTS]
 
     for sock, port in zip(udp_sockets, UDP_PORTS):
         sock.bind(("0.0.0.0", port))
-        sock.settimeout(1.0)  # Prevent blocking
-        sock.setblocking(False)  # Non-blocking mode (Windows replacement for MSG_DONTWAIT)
+        sock.setblocking(False)
 
     while True:
-        for sock in udp_sockets:
+        # Wait until at least one socket is ready for reading (with a timeout)
+        readable, _, _ = select.select(udp_sockets, [], [], 0.5)
+        for sock in readable:
             try:
-                data, _ = sock.recvfrom(BUFFER_SIZE)  # Non-blocking receive
+                data, _ = sock.recvfrom(BUFFER_SIZE)
                 message = data.decode("utf-8")
-                json_data = json.loads(message)  # Parse JSON
+                json_data = json.loads(message)
 
                 print(f"Received UDP message: {json_data}")
+                root.after(0, lambda d=json_data: update_gauges_from_udp(d))
 
-                # Schedule UI update in the main Tkinter thread
-                root.after(0, lambda: update_gauges_from_udp(json_data))
-
-            except socket.timeout:
-                continue  # Avoid blocking other sockets
-            except BlockingIOError:
-                continue  # No data available, move to next socket
             except Exception as e:
                 print(f"Error receiving UDP message: {e}")
 
@@ -211,18 +207,7 @@ for ax, label in zip(gauge_axes, PRESSURE_KEYS.values()):
     create_gauge(ax, 125, label)
 
 
-# # Create flow indicator labels below each gauge (skip first)
-# indicator_labels = []
-# for i, key in enumerate(PRESSURE_KEYS.keys()):
-#     if i == 0:
-#         indicator_labels.append(None)  # No indicator under 'Intake'
-#         continue
-#     frame = Frame(root, bg='gray')
-#     frame.pack(side=tk.LEFT, padx=25)
-#     label_text = INDICATOR_KEYS.get(key.replace(" pressure", " flow rate"), "Flow")
-#     lbl = Label(frame, text=f"{label_text}: 0", font=("Arial", 12), bg='white', width=15, relief='solid', bd=1)
-#     lbl.pack()
-#     indicator_labels.append(lbl)
+
 
 
 # === Create a container to grid-align gauges and indicators ===
@@ -262,8 +247,5 @@ for label, color in zip(LEVEL_KEYS.values(), ["blue", "red"]):
     level_canvas.pack()
     update_level(level_canvas, 50, color)
     level_canvases.append(level_canvas)
-
-# Start UDP listener
-#threading.Thread(target=udp_listener, daemon=True).start()
 
 root.mainloop()
