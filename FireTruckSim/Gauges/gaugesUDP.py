@@ -8,29 +8,42 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
 # UDP Configuration
-UDP_PORTS = list(range(8160, 8167)) 
-BUFFER_SIZE = 1024  
+UDP_PORTS = list(range(8160, 8167))  # Ports 8160-8166
+BUFFER_SIZE = 1024  # Adjust as needed
 
-# Gauge keys
-GAUGE_KEYS = {
-    "intake pressure": "Intake",
-    "master discharge pressure": "Discharge",
-    "discharge 1 pressure": "D1",
-    "discharge 2 pressure": "D2",
-    "discharge 3 pressure": "D3",
+# Flow and intake-related number indicators
+INDICATOR_KEYS = {
+    "total flow rate": "Total Flow",
+    "discharge 1 flow rate": "D1 Flow",
+    "discharge 2 flow rate": "D2 Flow",
+    "discharge 3 flow rate": "D3 Flow",
 }
 
+# Tank levels
 LEVEL_KEYS = {
     "normalized water tank level": "Water",
     "normalized foam tank level": "Foam",
 }
 
-prev_values = {key: 125 for key in GAUGE_KEYS.keys()}
-prev_level_values = {key: 50 for key in LEVEL_KEYS.keys()}
+# Pressure-specific gauges
+PRESSURE_KEYS = {
+    "intake pressure": "Intake",
+    "master discharge pressure": "Discharge",
+    "discharge 1 pressure": "D1 Pressure",
+    "discharge 2 pressure": "D2 Pressure",
+    "discharge 3 pressure": "D3 Pressure",
+}
 
-# UDP Listener
+prev_values = {
+    **{key: 125 for key in PRESSURE_KEYS.keys()},           # For gauge animations
+    **{key: 0 for key in INDICATOR_KEYS.keys()}             # For number indicators
+}
+
+prev_level_values = {key: 50 for key in LEVEL_KEYS.keys()}  # Still valid
+
+# UDP Listener (Runs in Separate Thread)
 def udp_listener():
-    #Listens for UDP messages
+    """Listens for UDP messages and safely updates the UI with received values."""
     udp_sockets = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM) for _ in UDP_PORTS]
 
     for sock, port in zip(udp_sockets, UDP_PORTS):
@@ -72,12 +85,37 @@ def update_gauges_from_udp(data):
 
     last_received_message = data  # Store latest message
 
-    new_values = {key: data.get(key, prev_values[key]) for key in GAUGE_KEYS.keys()}
-    new_levels = {key: data.get(key, prev_level_values[key]) * 100 for key in LEVEL_KEYS.keys()}  # Normalize %
+    new_values = prev_values.copy()
+    new_levels = prev_level_values.copy()
 
+    # Update only if the key is present in the new data
+    for key in PRESSURE_KEYS.keys():
+        if key in data:
+            new_values[key] = data[key]
+    
+    for key in INDICATOR_KEYS.keys():
+        if key in data:
+            new_values[key] = data[key]
+    
+    for key in LEVEL_KEYS.keys():
+        if key in data:
+            new_levels[key] = data[key] * 100  # Normalize
     # Update gauge displays
-    for key, ax in zip(GAUGE_KEYS.keys(), gauge_axes):
-        animate_gauge(ax, prev_values[key], new_values[key], GAUGE_KEYS[key], fig_canvas, root)
+    for i, (key, ax) in enumerate(zip(PRESSURE_KEYS.keys(), gauge_axes)):
+        pressure = data.get(key, prev_values.get(key, 125))
+        animate_gauge(ax, prev_values.get(key, 125), pressure, PRESSURE_KEYS[key], fig_canvas, root)
+
+        # Update corresponding flow indicator below (skip intake)
+        if i > 0:
+            flow_key = key.replace(" pressure", " flow rate")
+            flow_value = data.get(flow_key, 0)
+            indicator_label = indicator_labels[i]
+            if indicator_label:
+                indicator_label.config(text=f"{INDICATOR_KEYS.get(flow_key, 'Flow')}: {round(flow_value)}")
+
+        prev_values[key] = pressure
+
+
 
     # Update level indicators
     for key, (level_canvas, color) in zip(LEVEL_KEYS.keys(), zip(level_canvases, ["blue", "red"])):
@@ -103,40 +141,41 @@ def animate_gauge(ax, start_value, end_value, label, fig_canvas, root, duration=
 
     step()
 
-def create_gauge(ax, value, label, min_val=0, max_val=250):
+def create_gauge(ax, value, label, min_val=0, max_val=500):
     START_ANGLE, END_ANGLE = 210, -25
     ax.set_xlim(-1.2, 1.2)
     ax.set_ylim(-1.2, 1.2)
     theta = np.linspace(0, 2*np.pi, 100)
     ax.plot(np.cos(theta), np.sin(theta), 'k', lw=3)
 
-    for i in range(min_val, max_val+1, 50):
+    for i in range(min_val, max_val + 1, 50):
         angle = np.radians(START_ANGLE - (i - min_val) * ((START_ANGLE - END_ANGLE) / (max_val - min_val)))
         x_outer, y_outer = np.cos(angle), np.sin(angle)
         x_inner, y_inner = 0.8 * np.cos(angle), 0.8 * np.sin(angle)
         ax.plot([x_outer, x_inner], [y_outer, y_inner], 'k', lw=2)
         ax.text(x_outer * 1.2, y_outer * 1.2, str(i), ha='center', va='center', fontsize=10)
 
-    ax.needle = None
-    update_gauge(ax, value, label, START_ANGLE, END_ANGLE)
+    # Draw needle as a line and keep reference
+    angle = np.radians(START_ANGLE - ((value - min_val) / (max_val - min_val)) * (START_ANGLE - END_ANGLE))
+    needle_line, = ax.plot([0, 0.8 * np.cos(angle)], [0, 0.8 * np.sin(angle)], 'r', lw=3)
+    ax.needle = needle_line
 
+
+
+    ax.set_title(label, fontsize=10)
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_frame_on(False)
 
-def update_gauge(ax, value, label, START_ANGLE=210, END_ANGLE=-25, min_val=0, max_val=250):
-    if hasattr(ax, 'needle') and ax.needle:
-        ax.needle.remove()
-    angle_range = START_ANGLE - END_ANGLE
-    angle = np.radians(START_ANGLE - ((value - min_val) / (max_val - min_val)) * angle_range)
-    ax.needle = ax.arrow(0, 0, 0.8 * np.cos(angle), 0.8 * np.sin(angle), 
-                          head_width=0.1, head_length=0.1, fc='r', ec='r')
+def update_gauge(ax, value, label, START_ANGLE=210, END_ANGLE=-25, min_val=0, max_val=500):
+    angle = np.radians(START_ANGLE - ((value - min_val) / (max_val - min_val)) * (START_ANGLE - END_ANGLE))
+    x, y = 0.8 * np.cos(angle), 0.8 * np.sin(angle)
 
-    while ax.texts:
-        ax.texts[-1].remove()
+    if hasattr(ax, 'needle'):
+        ax.needle.set_data([0, x], [0, y])
 
-    ax.text(0, -1.3, str(round(value)), fontsize=12, ha='center', bbox=dict(facecolor='white', edgecolor='black'))
-    ax.set_title(label, fontsize=10)
+
+
 
 def update_level(level_canvas, value, color):
     level_canvas.delete("all")
@@ -168,12 +207,51 @@ plt.tight_layout()
 gauge_axes = axes
 
 # Initialize gauges
-for ax, label in zip(gauge_axes, GAUGE_KEYS.values()):
+for ax, label in zip(gauge_axes, PRESSURE_KEYS.values()):
     create_gauge(ax, 125, label)
 
-fig_canvas = FigureCanvasTkAgg(fig, master=root)
-fig_canvas.get_tk_widget().pack()
+
+# # Create flow indicator labels below each gauge (skip first)
+# indicator_labels = []
+# for i, key in enumerate(PRESSURE_KEYS.keys()):
+#     if i == 0:
+#         indicator_labels.append(None)  # No indicator under 'Intake'
+#         continue
+#     frame = Frame(root, bg='gray')
+#     frame.pack(side=tk.LEFT, padx=25)
+#     label_text = INDICATOR_KEYS.get(key.replace(" pressure", " flow rate"), "Flow")
+#     lbl = Label(frame, text=f"{label_text}: 0", font=("Arial", 12), bg='white', width=15, relief='solid', bd=1)
+#     lbl.pack()
+#     indicator_labels.append(lbl)
+
+
+# === Create a container to grid-align gauges and indicators ===
+gauge_container = Frame(root, bg="gray")
+gauge_container.pack(pady=10)
+
+# Place the existing matplotlib figure canvas in the grid
+fig_canvas = FigureCanvasTkAgg(fig, master=gauge_container)
+fig_widget = fig_canvas.get_tk_widget()
+fig_widget.grid(row=0, column=0, columnspan=5)
+
 fig_canvas.draw()
+
+# Flow indicator labels aligned under each gauge
+indicator_labels = []
+
+for i, key in enumerate(PRESSURE_KEYS.keys()):
+    if i == 0:
+        indicator_labels.append(None)
+        continue
+
+    flow_key = key.replace(" pressure", " flow rate")
+    flow_label = INDICATOR_KEYS.get(flow_key, "Total")
+
+    lbl = Label(gauge_container, text=f"{flow_label}: 0", font=("Arial", 12),
+                bg="white", width=15, relief='solid', bd=1)
+    lbl.grid(row=1, column=i, pady=(10, 0))
+    indicator_labels.append(lbl)
+
 
 level_canvases = []
 for label, color in zip(LEVEL_KEYS.values(), ["blue", "red"]):
