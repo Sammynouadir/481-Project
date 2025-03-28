@@ -264,6 +264,6 @@ for label, color in zip(LEVEL_KEYS.values(), ["blue", "red"]):
     level_canvases.append(level_canvas)
 
 # Start UDP listener
-threading.Thread(target=udp_listener, daemon=True).start()
+#threading.Thread(target=udp_listener, daemon=True).start()
 
 root.mainloop()
