@@ -9,7 +9,8 @@ import numpy as np
 import select
 
 # UDP Configuration
-UDP_PORTS = list(range(8160, 8167))  # Ports 8160-8166
+UDP_PORTS = [8161]
+
 BUFFER_SIZE = 1024  # Adjust as needed
 
 # Flow and intake-related number indicators
@@ -36,25 +37,24 @@ PRESSURE_KEYS = {
 }
 
 prev_values = {
-    **{key: 125 for key in PRESSURE_KEYS.keys()},           # For gauge animations
+    **{key: 0 for key in PRESSURE_KEYS.keys()},           # For gauge animations
     **{key: 0 for key in INDICATOR_KEYS.keys()}             # For number indicators
 }
 
-prev_level_values = {key: 50 for key in LEVEL_KEYS.keys()}  # Still valid
+prev_level_values = {key: 1 for key in LEVEL_KEYS.keys()} 
 
 
 def udp_listener():
-    """Listens for UDP messages using select() to reduce CPU usage."""
-    udp_sockets = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM) for _ in UDP_PORTS]
+    """Listens for UDP messages"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("0.0.0.0", 8161))
+    sock.setblocking(False)
 
-    for sock, port in zip(udp_sockets, UDP_PORTS):
-        sock.bind(("0.0.0.0", port))
-        sock.setblocking(False)
 
     while True:
         # Wait until at least one socket is ready for reading (with a timeout)
-        readable, _, _ = select.select(udp_sockets, [], [], 0.5)
-        for sock in readable:
+        readable, _, _ = select.select([sock], [], [], 0.5)
+        for s in readable:
             try:
                 data, _ = sock.recvfrom(BUFFER_SIZE)
                 message = data.decode("utf-8")
@@ -99,8 +99,10 @@ def update_gauges_from_udp(data):
     # Update gauge displays
     for i, (key, ax) in enumerate(zip(PRESSURE_KEYS.keys(), gauge_axes)):
         pressure = data.get(key, prev_values.get(key, 125))
-        animate_gauge(ax, prev_values.get(key, 125), pressure, PRESSURE_KEYS[key], fig_canvas, root)
-
+        old_val = prev_values.get(key, 125)
+        if abs(pressure - old_val) > 0.5:
+            animate_gauge(ax, old_val, pressure, PRESSURE_KEYS[key], fig_canvas, root)
+        
         # Update corresponding flow indicator below (skip intake)
         if i > 0:
             flow_key = key.replace(" pressure", " flow rate")
@@ -114,8 +116,10 @@ def update_gauges_from_udp(data):
 
 
     # Update level indicators
-    for key, (level_canvas, color) in zip(LEVEL_KEYS.keys(), zip(level_canvases, ["blue", "red"])):
-        animate_level(level_canvas, prev_level_values[key], new_levels[key], color)
+    old_level = prev_level_values[key]
+    new_level = new_levels[key]
+    if abs(new_level - old_level) > 1:  # skip small 1% changes
+        animate_level(level_canvas, old_level, new_level, color)
 
     prev_values = new_values
     prev_level_values = new_levels
@@ -125,7 +129,7 @@ def update_gauges_from_udp(data):
 def ease_in_out(t):
     return t * t * (3 - 2 * t)
 
-def animate_gauge(ax, start_value, end_value, label, fig_canvas, root, duration=1000, steps=20):
+def animate_gauge(ax, start_value, end_value, label, fig_canvas, root, duration=400, steps=10):
     step_values = [start_value + (end_value - start_value) * ease_in_out(i / steps) for i in range(steps + 1)]
     
     def step(i=0):
@@ -210,16 +214,35 @@ for ax, label in zip(gauge_axes, PRESSURE_KEYS.values()):
 
 
 
-# === Create a container to grid-align gauges and indicators ===
-gauge_container = Frame(root, bg="gray")
-gauge_container.pack(pady=10)
+# === Container to hold levels and gauges ===
+main_container = Frame(root, bg="gray")
+main_container.pack(pady=10)
 
-# Place the existing matplotlib figure canvas in the grid
+# === Add level indicators to the left ===
+level_container = Frame(main_container, bg="gray")
+level_container.grid(row=0, column=0, rowspan=2, padx=20)
+
+level_canvases = []
+for label, color in zip(LEVEL_KEYS.values(), ["blue", "red"]):
+    frame = Frame(level_container, bg='gray')
+    frame.pack(pady=10)
+    Label(frame, text=label, bg='gray', font=("Arial", 12)).pack()
+    level_canvas = Canvas(frame, width=50, height=200, bg="white")
+    level_canvas.pack()
+    update_level(level_canvas, 50, color)
+    level_canvases.append(level_canvas)
+
+# === Add gauges and flow indicators ===
+gauge_container = Frame(main_container, bg="gray")
+gauge_container.grid(row=0, column=1)
+
+# Place the matplotlib figure canvas in the grid
 fig_canvas = FigureCanvasTkAgg(fig, master=gauge_container)
 fig_widget = fig_canvas.get_tk_widget()
 fig_widget.grid(row=0, column=0, columnspan=5)
 
 fig_canvas.draw()
+
 
 # Flow indicator labels aligned under each gauge
 indicator_labels = []
@@ -238,14 +261,6 @@ for i, key in enumerate(PRESSURE_KEYS.keys()):
     indicator_labels.append(lbl)
 
 
-level_canvases = []
-for label, color in zip(LEVEL_KEYS.values(), ["blue", "red"]):
-    frame = Frame(root, bg='gray')
-    frame.pack(side=tk.LEFT, padx=20)
-    Label(frame, text=label, bg='gray', font=("Arial", 12)).pack()
-    level_canvas = Canvas(frame, width=50, height=200, bg="white")
-    level_canvas.pack()
-    update_level(level_canvas, 50, color)
-    level_canvases.append(level_canvas)
+
 
 root.mainloop()
