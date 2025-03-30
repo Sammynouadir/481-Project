@@ -60,7 +60,9 @@ def udp_listener():
                 message = data.decode("utf-8")
                 json_data = json.loads(message)
 
-                print(f"Received UDP message: {json_data}")
+                #print("Received UDP message:")
+                print(json.dumps(json_data, indent=4))
+
                 root.after(0, lambda d=json_data: update_gauges_from_udp(d))
 
             except Exception as e:
@@ -77,52 +79,62 @@ def update_gauges_from_udp(data):
 
     # Ignore duplicate messages
     if data == last_received_message:
-        return  # Skip processing if it's the same as last time
+        return
+    last_received_message = data
 
-    last_received_message = data  # Store latest message
+
+    print(json.dumps(data, indent=4))  #print incoming data
 
     new_values = prev_values.copy()
     new_levels = prev_level_values.copy()
 
-    # Update only if the key is present in the new data
+    # Update pressure and flow values
     for key in PRESSURE_KEYS.keys():
         if key in data:
             new_values[key] = data[key]
-    
+
     for key in INDICATOR_KEYS.keys():
         if key in data:
             new_values[key] = data[key]
-    
+
+    # Update level values (normalize from 0.0–1.0 to 0–100%)
     for key in LEVEL_KEYS.keys():
         if key in data:
-            new_levels[key] = data[key] * 100  # Normalize
-    # Update gauge displays
+            new_levels[key] = data[key]
+
+    # Animate gauges
     for i, (key, ax) in enumerate(zip(PRESSURE_KEYS.keys(), gauge_axes)):
         pressure = data.get(key, prev_values.get(key, 125))
         old_val = prev_values.get(key, 125)
         if abs(pressure - old_val) > 0.5:
             animate_gauge(ax, old_val, pressure, PRESSURE_KEYS[key], fig_canvas, root)
-        
-        # Update corresponding flow indicator below (skip intake)
-        if i > 0:
+
+
+        # Update flow indicators below gauges (including intake → total flow)
+        if i == 0:
+            flow_key = "total flow rate"
+        else:
             flow_key = key.replace(" pressure", " flow rate")
-            flow_value = data.get(flow_key, 0)
-            indicator_label = indicator_labels[i]
-            if indicator_label:
-                indicator_label.config(text=f"{INDICATOR_KEYS.get(flow_key, 'Flow')}: {round(flow_value)}")
+
+        flow_value = data.get(flow_key, 0)
+        indicator_label = indicator_labels[i]
+        if indicator_label:
+            flow_label = INDICATOR_KEYS.get(flow_key, "Flow")
+            indicator_label.config(text=f"{flow_label}: {round(flow_value)}")
+
 
         prev_values[key] = pressure
 
-
-
-    # Update level indicators
-    old_level = prev_level_values[key]
-    new_level = new_levels[key]
-    if abs(new_level - old_level) > 1:  # skip small 1% changes
-        animate_level(level_canvas, old_level, new_level, color)
+    # Animate level indicators
+    for i, level_key in enumerate(LEVEL_KEYS.keys()):
+        old_level = prev_level_values[level_key]
+        new_level = new_levels[level_key]
+        #if abs(new_level - old_level) > 0.1:  # More sensitive change detection
+        animate_level(level_canvases[i], old_level, new_level, level_colors[i])
 
     prev_values = new_values
     prev_level_values = new_levels
+
 
 
 # Gauge Animation Functions
@@ -153,7 +165,7 @@ def create_gauge(ax, value, label, min_val=0, max_val=500):
         x_outer, y_outer = np.cos(angle), np.sin(angle)
         x_inner, y_inner = 0.8 * np.cos(angle), 0.8 * np.sin(angle)
         ax.plot([x_outer, x_inner], [y_outer, y_inner], 'k', lw=2)
-        ax.text(x_outer * 1.2, y_outer * 1.2, str(i), ha='center', va='center', fontsize=10)
+        ax.text(x_outer * 1.2, y_outer * 1.2, str(i), ha='center', va='center', fontsize=8)
 
     # Draw needle as a line and keep reference
     angle = np.radians(START_ANGLE - ((value - min_val) / (max_val - min_val)) * (START_ANGLE - END_ANGLE))
@@ -179,8 +191,8 @@ def update_gauge(ax, value, label, START_ANGLE=210, END_ANGLE=-25, min_val=0, ma
 
 def update_level(level_canvas, value, color):
     level_canvas.delete("all")
-    width, height = 50, 200
-    level_height = (value / 100) * height
+    width, height = 50, 150
+    level_height = (value / 1) * height
     level_canvas.create_rectangle(10, height - level_height, 40, height, fill=color)
     level_canvas.create_rectangle(10, 0, 40, height, outline="black", width=2)
     level_canvas.create_text(25, height + 10, text=f"{value}%", font=("Arial", 12))
@@ -202,13 +214,14 @@ root.title("Pump Panel Dashboard")
 root.configure(bg='gray')
 
 # Create Matplotlib figure
-fig, axes = plt.subplots(1, 5, figsize=(12, 3))
+fig, axes = plt.subplots(1, 5, figsize=(9, 2.2))
+
 plt.tight_layout()
 gauge_axes = axes
 
 # Initialize gauges
 for ax, label in zip(gauge_axes, PRESSURE_KEYS.values()):
-    create_gauge(ax, 125, label)
+    create_gauge(ax, 0, label)
 
 
 
@@ -222,15 +235,17 @@ main_container.pack(pady=10)
 level_container = Frame(main_container, bg="gray")
 level_container.grid(row=0, column=0, rowspan=2, padx=20)
 
+level_colors = ["blue", "red"]
 level_canvases = []
 for label, color in zip(LEVEL_KEYS.values(), ["blue", "red"]):
     frame = Frame(level_container, bg='gray')
-    frame.pack(pady=10)
+    frame.pack(side='left', padx=10)  # <-- Change here
     Label(frame, text=label, bg='gray', font=("Arial", 12)).pack()
-    level_canvas = Canvas(frame, width=50, height=200, bg="white")
+    level_canvas = Canvas(frame, width=50, height=150, bg="white")
     level_canvas.pack()
-    update_level(level_canvas, 50, color)
+    update_level(level_canvas, 100, color)
     level_canvases.append(level_canvas)
+
 
 # === Add gauges and flow indicators ===
 gauge_container = Frame(main_container, bg="gray")
@@ -248,18 +263,19 @@ fig_canvas.draw()
 indicator_labels = []
 
 for i, key in enumerate(PRESSURE_KEYS.keys()):
-    if i == 0:
-        indicator_labels.append(None)
-        continue
-
     flow_key = key.replace(" pressure", " flow rate")
-    flow_label = INDICATOR_KEYS.get(flow_key, "Total")
+
+    if i == 0:
+        # First label is for "total flow rate"
+        flow_key = "total flow rate"
+        flow_label = INDICATOR_KEYS.get(flow_key, "Total")
+    else:
+        flow_label = INDICATOR_KEYS.get(flow_key, "Flow")
 
     lbl = Label(gauge_container, text=f"{flow_label}: 0", font=("Arial", 12),
                 bg="white", width=15, relief='solid', bd=1)
     lbl.grid(row=1, column=i, pady=(10, 0))
     indicator_labels.append(lbl)
-
 
 
 
