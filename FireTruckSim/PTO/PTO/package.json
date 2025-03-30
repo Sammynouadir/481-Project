@@ -1,0 +1,31 @@
+{
+  "name": "pto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.main.json && vite build",
+    "start": "cross-env NODE_ENV=production electron .",
+    "electron-watch": "electron .",
+    "watch": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^22.13.11",
+    "@types/three": "^0.175.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^35.0.3",
+    "electron-reload": "^2.0.0-alpha.1",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.3"
+  },
+  "dependencies": {
+    "three": "^0.175.0"
+  }
+}
