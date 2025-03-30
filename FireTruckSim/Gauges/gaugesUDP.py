@@ -263,19 +263,24 @@ fig_canvas.draw()
 indicator_labels = []
 
 for i, key in enumerate(PRESSURE_KEYS.keys()):
-    flow_key = key.replace(" pressure", " flow rate")
+    if i == 1:
+        # Skip a flow label
+        indicator_labels.append(None)
+        continue
 
+    # Map pressure keys to their matching flow rate keys
     if i == 0:
-        # First label is for "total flow rate"
         flow_key = "total flow rate"
-        flow_label = INDICATOR_KEYS.get(flow_key, "Total")
     else:
-        flow_label = INDICATOR_KEYS.get(flow_key, "Flow")
+        flow_key = key.replace(" pressure", " flow rate")
+
+    flow_label = INDICATOR_KEYS.get(flow_key, "Flow")
 
     lbl = Label(gauge_container, text=f"{flow_label}: 0", font=("Arial", 12),
                 bg="white", width=15, relief='solid', bd=1)
     lbl.grid(row=1, column=i, pady=(10, 0))
     indicator_labels.append(lbl)
+
 
 
 
