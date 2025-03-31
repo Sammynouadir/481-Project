@@ -27,10 +27,8 @@ def listen():
             data = json.loads(message.decode())
 
             if "Reset" in data and data["Reset"] == 1:
-#                print(data)
                 reset_valve_control()  
             elif listeningFor in data:
-#                print(f"Received update: {data[listeningFor]}")
                 app.update_lights(int(data[listeningFor] * 5))  #
                 
         except Exception as e:            
@@ -44,11 +42,11 @@ class LightControlApp:
         self.strength = 0.0
         self.root = root
         self.root.title("Valve Control " + listeningFor)
-        self.root.minsize(400, 200)
+
+        self.root.resizable(True, True)  #resizable window vertically and horizontally
 
         self.canvas = tk.Canvas(root, bg="light grey")
         self.canvas.pack(fill="both", expand=True)
-
         self.lights = []
         self.light_status = [False] * 5  # tracks on/off state of lights
         
@@ -64,12 +62,21 @@ class LightControlApp:
             self.lights.append(light)
 
     def create_triangles(self):
-        # decrease
-        self.left_triangle = self.canvas.create_polygon(50, 100, 30, 120, 50, 140, fill="red")
+        # Adjust the y-coordinate to align with the lights
+        light_y_center = 65  # Approximate vertical center of the lights
+
+        # decrease triangle left side
+        self.left_triangle = self.canvas.create_polygon(50, light_y_center - 15, 
+                                                    30, light_y_center, 
+                                                    50, light_y_center + 15, 
+                                                    fill="red")
         self.canvas.tag_bind(self.left_triangle, "<Button-1>", self.send_decrease)
 
-        # increase
-        self.right_triangle = self.canvas.create_polygon(350, 100, 370, 120, 350, 140, fill="green")
+        # increase triangle right side
+        self.right_triangle = self.canvas.create_polygon(350, light_y_center - 15, 
+                                                     370, light_y_center, 
+                                                     350, light_y_center + 15, 
+                                                     fill="green")
         self.canvas.tag_bind(self.right_triangle, "<Button-1>", self.send_increase)
 
     def send_increase(self, event=None):
@@ -131,8 +138,8 @@ app = LightControlApp(root,strength)
 listener_thread = threading.Thread(target=listen, daemon=True)
 listener_thread.start()
 
-#Start GUI
+#start GUI
 root.mainloop()
 
-# Close socket when program ends
+# close socket when program ends
 server_socket.close()
