@@ -97,7 +97,7 @@ class UdpMessageApp:
         Label(incoming_frame, text="Latest Message Received:", font=("Arial", 12, "bold")).grid(row=1, column=0, columnspan=2, pady=5)
 
         # Expandable Text Box for Latest Message
-        self.latest_message_text = Text(incoming_frame, wrap="word", height=25, width=60)
+        self.latest_message_text = Text(incoming_frame, wrap="word", height=35, width=60)
         self.latest_message_text.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky=N+S+E+W)
 
         # Messages Received Counter

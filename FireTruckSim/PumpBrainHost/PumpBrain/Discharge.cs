@@ -11,6 +11,7 @@ namespace PumpBrain
     {
         internal double FlowRate { get; private set; }
         internal double Pressure { get; private set; }
+        internal double NozzlePressure { get; private set; }
         internal double Position { get; private set; }
         internal string Description { get; private set; }
         private Hose _hose;
@@ -20,7 +21,6 @@ namespace PumpBrain
         private string _positionKey;
         private double _nozzleDiameter;
         private double _nozzleDiameterSquared;
-        private double _nozzlePressure;
         private double _previousPressure;
         private double _targetPosition;
 
@@ -70,10 +70,10 @@ namespace PumpBrain
         public void CalculateFlowRate()
         {
             // Subtract hose friction loss from pressure
-            _nozzlePressure = Pressure - _hose.CalculateHoseFrictionLoss();
+            NozzlePressure = Pressure - _hose.CalculateHoseFrictionLoss();
 
             // Set flow rate to 0 if discharge is closed or pressure is 0
-            if (_nozzlePressure < 0.01 || Position < .05)
+            if (NozzlePressure < 0.01 || Position < .05)
             {
                 FlowRate = 0.0;
                 _hose.FlowRate = FlowRate;
@@ -83,7 +83,7 @@ namespace PumpBrain
                 // Smooth the change in flow rate to avoid spiking cycle
                 double smoothingFactor = 0.1;
                 double maxFlowChange = 10.0;
-                double newFlowRate = smoothingFactor * FlowRate + (1 - smoothingFactor) * (Consts.waterFlowRateCoefficient * _nozzleDiameterSquared * Math.Sqrt(_nozzlePressure));
+                double newFlowRate = smoothingFactor * FlowRate + (1 - smoothingFactor) * (Consts.waterFlowRateCoefficient * _nozzleDiameterSquared * Math.Sqrt(NozzlePressure));
                 FlowRate = Math.Clamp(newFlowRate, FlowRate - maxFlowChange, FlowRate + maxFlowChange);
                 _hose.FlowRate = FlowRate;
             }
@@ -138,7 +138,7 @@ namespace PumpBrain
         // TODO: remove this, it's just for testing so you can put it up on the test tool
         internal double GetNozzlePressureForTesting()
         {
-            return _nozzlePressure;
+            return NozzlePressure;
         }
     }
 }

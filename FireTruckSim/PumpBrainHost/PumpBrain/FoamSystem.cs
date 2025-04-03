@@ -70,7 +70,7 @@ namespace PumpBrain
         {
             if (data.TryGetValue(Consts.foamConcentration, out var concentration))
             {
-                _foamConcentration = concentration;
+                _foamConcentration = concentration / 10.0;
             }
             if (data.TryGetValue(Consts.foamSystemPower, out var foamSystemPower))
             {

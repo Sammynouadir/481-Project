@@ -22,9 +22,8 @@ C:\Users\jason\source\gitHub\PumpPanel\481-Project\PumpBrain\PumpBrain\obj\Debug
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\PumpBrain\PumpBrain\obj\Debug\net7.0\refint\PumpBrain.dll
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\PumpBrain\PumpBrain\obj\Debug\net7.0\PumpBrain.pdb
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\PumpBrain\PumpBrain\obj\Debug\net7.0\ref\PumpBrain.dll
-C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\bin\Debug\net7.0\PumpBrain.deps.json
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\bin\Debug\net7.0\PumpBrain.dll
-C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\bin\Debug\net7.0\PumpBrain.pdb
+C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\bin\Debug\net7.0\PumpBrain.deps.json
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\PumpBrain.csproj.AssemblyReference.cache
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\PumpBrain.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\PumpBrain.AssemblyInfoInputs.cache
@@ -33,4 +32,5 @@ C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBr
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\PumpBrain.dll
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\refint\PumpBrain.dll
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\PumpBrain.pdb
+C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\bin\Debug\net7.0\PumpBrain.pdb
 C:\Users\jason\source\gitHub\PumpPanel\481-Project\FireTruckSim\PumpBrain\PumpBrain\obj\Debug\net7.0\ref\PumpBrain.dll
