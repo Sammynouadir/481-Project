@@ -6,7 +6,7 @@ import socket
 from tkinter import Tk, Label, Text, Frame, Button, N, S, E, W
 
 # Add reference to the C# .dll
-clr.AddReference(r"/Users/oussamanouadir/firefighter/FireTruckSim/PumpBrain/PumpBrain/bin/Debug/net7.0/PumpBrain.dll")
+clr.AddReference("PumpBrain")
 
 # Import the namespace
 from PumpBrain import PumpBrain
