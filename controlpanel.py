@@ -32,7 +32,7 @@ class UdpMessageApp:
         print("Forced Hydrant Connected State to:", self.cp_interface.GetHydrantConnected())
 
         # Ensure Pump is Running
-        self.cp_interface.SetPauseState(False)  # Unpause the pump
+        self.cp_interface.SetPauseState(False)  
         
         # Initialize the root window
         self.root = root
