@@ -9,3 +9,4 @@ start cmd /c "npm start --prefix FireTruckSim\PTO\PTO"
 pushd FireTruckSim
 pushd ValveControllers
 call runValves.bat
+start "" "%SCRIPT_DIR%ScreenSetter.exe"
