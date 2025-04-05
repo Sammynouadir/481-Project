@@ -110,7 +110,7 @@ class LightControlApp:
 
         #reset all lights
         self.light_status = [False] * 5
-        for i in range(5):
+        for i in range(min(value, 5) ,5):
             self.canvas.itemconfig(self.lights[i], fill="gray")
 
         # turn on lights based on received value from pump brain
